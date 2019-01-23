@@ -1,0 +1,102 @@
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Truncate logs
+      shell: echo "" > /etc/ansible/ansible.log
+
+- hosts: omv
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Stop transmission on OMV
+     systemd:
+       name: transmission-daemon
+       state: stopped
+
+- hosts: apt
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: updates a server
+     apt: update_cache=yes
+
+   - name: upgrade a server
+     apt: upgrade=dist dpkg_options='force-confold,force-confdef'
+
+   - name: Check if a reboot is required
+     register: reboot
+     stat: path=/var/run/reboot-required get_md5=no
+
+   - name: Check if kexec is used
+     register: kexec
+     stat: path=/usr/bin/kexec-reboot get_md5=no
+
+   - name: Reboot the services
+     shell: needrestart -ra -l
+     when: reboot.stat.exists == false
+
+   - name: Reboot the server using reboot
+     command: /sbin/reboot
+     async: 1
+     poll: 0
+     when: reboot.stat.exists == true and kexec.stat.exists == false
+
+
+   - name: Wait for systems to become reachable
+     wait_for_connection:
+
+   - name: Reboot the server using kexec
+     shell: kexec-reboot -lr
+     async: 1
+     poll: 0
+     when: reboot.stat.exists == true and kexec.stat.exists == true
+
+   - name: Wait for systems to become reachable
+     wait_for_connection:
+
+- hosts: ngx-custom
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Build latest Nginx Release
+      script: /etc/ansible/ressources/scripts/build-ngx.sh
+      notify:
+        - restart nginx
+
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted
+
+
+- hosts: bitwarden
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Self update on bitwarden
+     shell: /root/bitwarden.sh updateself
+
+   - name: Update bitwarden core and web
+     shell: /root/bitwarden.sh update
+
+- hosts: omv 
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Start transmission on OMV
+     systemd:    
+       name: transmission-daemon
+       state: started
+
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Sending ansible.log by email
+     mail:
+       host: outbound-eu1.ppe-hosted.com
+       port: 25 
+       from: ansible@mail.ch
+       to: me@mail.ch
+       subject: Linux Servers update log
+       body: "{{ lookup('file', '/etc/ansible/ansible.log') }}"

@@ -1,0 +1,69 @@
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Truncate logs
+      shell: echo "" > /etc/ansible/ansible.log
+
+- hosts: omv
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Stop transmission on OMV
+     systemd:
+       name: transmission-daemon
+       state: stopped
+
+- hosts: windows-no-ad
+  tasks:
+   - name: install all critical and security updates
+     win_updates:
+       category_names:
+       - CriticalUpdates
+       - SecurityUpdates
+       state: installed
+     register: update_result
+
+   - name: reboot if required
+     win_reboot:
+       reboot_timeout_sec: 180
+     when: update_result.reboot_required
+
+
+- hosts: windows-ad
+  tasks:
+   - name: install all critical and security updates
+     win_updates:
+       category_names:
+       - CriticalUpdates
+       - SecurityUpdates
+       state: installed
+     register: update_result
+
+   - name: reboot if required
+     win_reboot:
+       reboot_timeout_sec: 1200
+     when: update_result.reboot_required
+
+
+- hosts: omv 
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Start transmission on OMV
+     systemd:    
+       name: transmission-daemon
+       state: started
+
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Sending ansible.log by email
+     mail:
+       host: outbound-eu1.ppe-hosted.com
+       port: 25 
+       from: ansible@mail.ch
+       to: me@mail.ch
+       subject: Windows Servers update log
+       body: "{{ lookup('file', '/etc/ansible/ansible.log') }}"

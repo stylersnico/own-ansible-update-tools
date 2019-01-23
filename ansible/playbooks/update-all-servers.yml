@@ -1,0 +1,3 @@
+- import_playbook: include/update-apt-servers.yml
+- import_playbook: include/update-windows-servers.yml
+- import_playbook: include/update-opnsense-servers.yml

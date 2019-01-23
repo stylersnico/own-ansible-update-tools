@@ -1,0 +1,44 @@
+[ansible]
+localhost	ansible_connection=local
+
+[apt]
+localhost       ansible_connection=local
+omv.nsh.ovh:22  ansible_connection=ssh  ansible_user=root
+webhost.nicolas-simond.com:22      ansible_connection=ssh  ansible_user=root
+192.168.1.7:22      ansible_connection=ssh  ansible_user=nsw-ansible
+192.168.1.11:22      ansible_connection=ssh  ansible_user=nsw-ansible
+192.168.1.12:22      ansible_connection=ssh  ansible_user=nsw-ansible
+cloud.yaute.ninja:22      ansible_connection=ssh  ansible_user=root
+192.168.1.38  ansible_connection=ssh  ansible_user=root
+192.168.1.39 ansible_connection=ssh  ansible_user=root
+192.168.1.40 ansible_connection=ssh  ansible_user=root
+
+[ngx-custom]
+192.168.1.7:22      ansible_connection=ssh  ansible_user=nsw-ansible
+webhost.nicolas-simond.com:22      ansible_connection=ssh  ansible_user=root
+
+[letsencrypt]
+192.168.1.7:22      ansible_connection=ssh  ansible_user=nsw-ansible
+webhost.nicolas-simond.com:22      ansible_connection=ssh  ansible_user=root
+
+[bitwarden]
+192.168.1.38  ansible_connection=ssh  ansible_user=root
+
+[omv]
+omv.nsh.ovh:22  ansible_connection=ssh  ansible_user=root
+
+[windows-no-ad]
+veeambackup.nicolas-simond.ch
+Ubiquiti-C.nicolas-simond.ch
+
+[windows-ad]
+ex-dc02.nicolas-simond.ch
+ex-ms02.nicolas-simond.ch
+[exchange]
+ex-ms02.nicolas-simond.ch
+
+[freebsd]
+192.168.1.254 ansible_connection=ssh ansible_user=root
+
+[freebsd:vars]
+ansible_python_interpreter="/usr/local/bin/python2.7"

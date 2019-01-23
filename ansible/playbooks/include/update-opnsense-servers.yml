@@ -1,0 +1,44 @@
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Truncate logs
+      shell: echo "" > /etc/ansible/ansible.log
+
+- hosts: omv
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Stop transmission on OMV
+     systemd:
+       name: transmission-daemon
+       state: stopped
+
+- hosts: freebsd
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Update OPNSense
+     shell: opnsense-update
+
+- hosts: omv 
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Start transmission on OMV
+     systemd:    
+       name: transmission-daemon
+       state: started
+
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Sending ansible.log by email
+     mail:
+       host: outbound-eu1.ppe-hosted.com
+       port: 25 
+       from: ansible@mail.ch
+       to: me@mail.ch
+       subject: OPNSense update log
+       body: "{{ lookup('file', '/etc/ansible/ansible.log') }}"
