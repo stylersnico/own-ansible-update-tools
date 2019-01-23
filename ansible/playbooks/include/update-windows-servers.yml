@@ -42,7 +42,7 @@
 
    - name: reboot if required
      win_reboot:
-       reboot_timeout_sec: 1200
+       reboot_timeout_sec: 180
      when: update_result.reboot_required
 
 
