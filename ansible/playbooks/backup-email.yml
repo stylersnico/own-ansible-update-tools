@@ -1,0 +1,38 @@
+#check https://www.abyssproject.net/2021/04/backup-headless-de-ses-emails-protonmail-sous-debian-10/ for info
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Truncate logs
+      shell: echo "" > /etc/ansible/ansible.log
+
+- hosts: proton
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Backup email
+     shell: /root/backup-email.sh > /var/log/backup-email.last.log
+
+   - name: Downloading log
+     fetch:
+      src: /var/log/backup-email.last.log
+      dest: /tmp/
+      flat: yes
+
+
+- hosts: ansible
+  become: yes
+  become_method: sudo
+  tasks:
+   - name: Sending ansible.log by email
+     mail:
+       host: mail.gandi.net
+       port: 587
+       secure: starttls
+       username: x
+       password: x
+       from: x
+       to: x
+       subject: Email backup log
+       body: "{{ lookup('file', '/etc/ansible/ansible.log') }}"
+       attach: /tmp/backup-email.last.log
